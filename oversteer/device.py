@@ -426,13 +426,36 @@ class Device:
                 event.code = ecodes.ABS_RZ
             elif event.code == ecodes.ABS_RZ:
                 event.code = ecodes.ABS_Y
-        elif self.usb_id in [wid.TM_T248, wid.TM_T150, wid.TM_TMX]:
+        elif self.usb_id in [wid.TM_T248, wid.TM_T150, wid.TM_TMX, wid.TM_TSPC]:
             if event.code == ecodes.ABS_RZ:
                 event.code = ecodes.ABS_Z
             elif event.code == ecodes.ABS_Y:
                 event.code = ecodes.ABS_RZ
             elif event.code == ecodes.ABS_THROTTLE:
                 event.code = ecodes.ABS_Y
+
+            # TS-PC HAT shows as RUDDER, and supports 8-way
+            # direction, 0-7, with value of 15 being lift,
+            # but normalization requires separate axes
+            if self.usb_id == wid.TM_TSPC:
+                if event.code == ecodes.ABS_RUDDER:
+                    # UP
+                    if event.value == 0:
+                        event.code = ecodes.ABS_HAT0Y
+                        event.value = -1
+                    # LEFT
+                    if event.value == 2:
+                        event.code = ecodes.ABS_HAT0X
+                        event.value = 1
+                    # DOWN
+                    if event.value == 4:
+                        event.code = ecodes.ABS_HAT0Y
+                        event.value = 1
+                    # RIGHT
+                    if event.value == 6:
+                        event.code = ecodes.ABS_HAT0X
+                        event.value = -1
+
         elif self.vendor_id == wid.VENDOR_FANATEC and event.code in [ecodes.ABS_Y, ecodes.ABS_Z, ecodes.ABS_RZ]:
             event.value = int(event.value + 32768 / 257)
         elif self.usb_id == wid.LG_GPRO:
